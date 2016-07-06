@@ -24,32 +24,33 @@
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
-#include "../../swftools/config.h"
-#include "../../swftools/lib/args.h"
-#include "../../swftools/lib/os.h"
-#include "../../swftools/lib/gfxsource.h"
-#include "../../swftools/lib/gfxdevice.h"
-#include "../../swftools/lib/gfxpoly.h"
-#include "../../swftools/lib/devices/pdf.h"
-#include "../../swftools/lib/devices/swf.h"
-#include "../../swftools/lib/devices/text.h"
-#include "../../swftools/lib/devices/render.h"
-#include "../../swftools/lib/devices/file.h"
-#include "../../swftools/lib/devices/bbox.h"
+#include "../config.h"
+#include "../lib/args.h"
+#include "../lib/os.h"
+#include "../lib/gfxsource.h"
+#include "../lib/gfxdevice.h"
+#include "../lib/gfxpoly.h"
+#include "../lib/devices/pdf.h"
+#include "../lib/devices/swf.h"
+#include "../lib/devices/text.h"
+#include "../lib/devices/render.h"
+#include "../lib/devices/file.h"
+#include "../lib/devices/bbox.h"
 #ifdef HAVE_LRF
-#include "../../swftools/lib/devices/lrf.h"
+#include "../lib/devices/lrf.h"
 #endif
-#include "../../swftools/lib/devices/rescale.h"
-#include "../../swftools/lib/devices/record.h"
-#include "../../swftools/lib/readers/image.h"
-#include "../../swftools/lib/readers/swf.h"
-#include "../../swftools/lib/pdf/pdf.h"
-#include "../../swftools/lib/log.h"
+#include "../lib/devices/rescale.h"
+#include "../lib/devices/record.h"
+#include "../lib/readers/image.h"
+#include "../lib/readers/swf.h"
+#include "../lib/pdf/pdf.h"
+#include "../lib/log.h"
 
 static gfxsource_t*driver = 0;
 
 static char * outputname = 0;
 static int loglevel = 3;
+static char * maxdpi = "72";
 static char * pagerange = 0;
 static char * filename = 0;
 static const char * format = 0;
@@ -76,6 +77,11 @@ int args_callback_option(char*name,char*val) {
 	loglevel --;
         setConsoleLogging(loglevel);
 	return 0;
+    }
+    else if (!strcmp(name, "r"))
+    {
+        maxdpi = val;
+        return 1;
     }
     else if (name[0]=='p')
     {
@@ -126,6 +132,7 @@ struct options_t options[] =
  {"q","quiet"},
  {"V","version"},
  {"s","set"},
+ {"r","resolution"},
  {"p","pages"},
  {0,0}
 };
@@ -264,6 +271,7 @@ int main(int argn, char *argv[])
 	    msg("<error> Invalid output format: %s", format);
 	    exit(1);
 	}
+	out->setparameter(out, "maxdpi", maxdpi);
 
         int pagenr;
         for(pagenr = 1; pagenr <= doc->num_pages; pagenr++) 
